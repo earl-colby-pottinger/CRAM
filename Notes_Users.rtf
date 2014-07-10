@@ -1,0 +1,31 @@
+CRAM - What versions to use by Earl Colby Pottinger.
+
+-CRAM 0.10: This is the most basic, simplest and fastest working ramdrive possible.  I find it most useful for doing text searches mostly, I also use it sometimes for organizing files but the fact that it will lose it's contents if the computer is reset limits what it can be safely used for.  Also the size of the ramdrive is limited by the available memory of the computer and the max size VM_Buffer[] that the OS will allow to be created.  On my 2GB machine it works reliably up to 800MBytes.  The default size is 256MBytes.
+
+
+-CRAM 0.20: This version loads and saves it's drive image as a single large file (the default size is 256MBytes) to the storage media selected (presently /boot/home/DriveImage2) and will automaticly reload the image of the drive next time the computer is booted.  This means that when the computer is restarted it loads the image it saved earlier and all your files are still there. There is one problem with this design, as files are written to the ramdrive and later are flushed to storage or when you do a restart of your computer the large image file will be the full declared size of the ramdrive which can slow down operations.  And the larger the ram drive (and thus the image file), the slower the drive flushs are and overall performance.  This does not have any affect on read speed.  Notice if a single large file is being written to the ramdrive that the flush does not happen until the file is closed, so even with these limitations the ram drive is still useful for audio/video capture programs.  
+
+
+-CRAM 0.30: This version loads and saves it's drive image as a single large file as-well, however unlike version 0.20 the memory is segmented and only the segments (Data-Tracks) written to are saved during any flush operation.  This function is needed for future versions to support compression, virtual memory and the ability to spread the disk image across multiple storage units for the simple RAID-0 version.  The pre-allocated heap used is already defined to be large enough hold the entire reported size of ramdrive. The main advantage of this design is only the portion of the heap used to hold allocated Data-Tracks needs to be written out to recover the ramdrive.  This speeds up the drive compared to the 0.20 version but is still slower than the 0.10 version.This means that until the drive is filled the image file that is written to storage is a lot smaller than the assigned memory.  This speed up the operation of a ramdrive.  The default heap size is 256MBytes.
+
+
+-CRAM 0.40: Again this version uses segmented memory and thus also allocates Data-Tracks from an internal heap.  However unlike version 0.30 only the segments written to since the last flush are written out.  Since it writes out the individual Data-Tracks to data storage, this makes for an increase in speed as faster and smaller writes are needed to keep the drive image up to date.  The default heap size is 256MBytes.
+
+
+********* UNDER DEVELOPMENT *********
+CRAM 0.50:
+         This version will let you define a drive that is larger than it's own internal buffer.  It does this by compressing Data-Tracks not in use but since all the data still must fit in memory even after compression your computer's memory still limits how much data you can store into it.  Note: while compression/decompression does slow this drive down it should still out very fast compared to most hard drives unless you have a slow computer (ie. less than 1GHz clock) or a very fast hard drive (SSDs or a RAID array).
+
+
+CRAM 0.60:
+         This version will let you define the drive as large as you want.  It uses it's own internal virtual-memory code for writing extra Data-Tracks to a storage media to free up space in memory.
+
+
+CRAM 0.70:
+         This working version combines compression, virtual-memory and scattered load/saves to give you a ramdrive that is not limited by the amount of memory in one's computer.  This version adds a settings file to allow you to set which functions you want operating.
+
+
+CRAM 0.80:
+         If I get this version working I plan to add data-deduplication to this version.  At this point I also plan to replace the fixed sized buffers/arrays to malloc()ed memory, make it 64bit clean and insure that the code can handle multi-threading access.
+
+Note: if Data-Tracks were malloc()ed instead when needed the ram drive would use no more memory than the contents placed in it.  Any programmer who wishes to make this change is welcome to do so.

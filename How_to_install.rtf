@@ -1,0 +1,62 @@
+CRAM - A Compressing RAM Drive for Haiku-OS by Earl Colby Pottinger.
+
+What are the CRAM drivers?
+
+The CRAM drivers in this archive are my attempt to port my BeOS RAMDRIVE (originally based on the work of Dmitriy Budko) to Haiku-OS while also adding scattered loading and data compression.  Additionally, I have written my own Virtual Memory handler that exists only inside the CRAM's driver software to enable the saving of Data-Tracks across multiple storage units.  In effect a poor man's RAID-?? with the added advantage that if it is set up properly the diffirent storage volumes do not even need to be the same size.
+
+If you read the file 'Notes to the Users' you will find a list of the diffirent versions of the drivers and thier limitations.  At present I suggest using version 0.40 as it is the most flexible one at present.
+
+If you are using GCC4:
+
+Please note these versions were all compiled under GCC2-Hybrid, if you are using GCC4 or later you can compile a version using the instructions further down in this document.
+
+How to install a CRAM driver?
+
+Open the folder of the CRAM version you wish to install, drag the file called 'CRAMx' to the 'bin' folder that is just above it.  Also drag the folder called 'disk' to the 'dev' folder.  'x' will be a number with a value of 1 to 9.
+
+Now you need to format the CRAM.
+
+(1) Start the program 'DriveSetup' found in your 'Applications' menu.
+
+(2) You should see an entry called '/dev/disk/cramx/raw', select it.
+
+(3) Then in the Partition menu navigate to Initialize, then to Be File System.
+
+(4) Click on Continue.  You have the option to choose another name for the drive at this point.
+
+(5) Then click on Initialize, next click on Write Changes and lastly Ok.
+
+The drive is now formatted as a HaikuFS drive.  It just needs to be mounted to the desktop.
+
+(6) Mounting of the CRAM drive can be done by once again going to the 'DriveSetup' Partition menu and navigating to the Mount option, this should mount your drive.  Otherwise you can right-click on the desktop, a dropdown menu will appear, move the mouse to where it says 'Mount', a list of drives will appear, select the one with the name you formatted the CRAM drive with, the default being 'Haiku'.
+
+
+How modify and compile the drivers:
+         I was unable to get Paladin to compile my driver, so you have to do it from the terminal (CLI).  Ofcourse if you are smarter than me, which you probably are, then if you figure out how to compile drivers using Paladin please drop me a hint on Haikuware or Earl_Colby_Pottinger@yahoo.com thank you.
+
+Increasing the size of the ram drive:
+         If you wish to create a larger drive just increase the value of 'sectors per track' and/or 'number of tracks' in the code.  You can also increase the value of 'number of heads' or 'sector size', please read below to find out which is the best choice with each version.
+
+  For versions 0.10 and 0.20 you can increase any of the parameters you wish (please note the limits on sector size that are commentted in the code).  Your only limit is how much free ram you have and Haiku's limiting the size of arrays to 1GB at present.
+
+  For version 0.30 the size of drive image saved to storage is partly based on the size of the Data-Tracks (defined as sector size * sectors per track) allocatted, the larger the Data-Track the bigger the jumps in the size of the drive image written out.  However, the driver also needs to keep track of the allocated Data-Tracks, so if they are too small then the supporting arrays will also grow very large and are also part of that drive image.
+
+  For version 0.40 the Data-Tracks are stored individually to storage and a compact status array index them.  For this reason I suggest that Data-Tracks should be atleast 64KB in size.  But note: If you configure for example a 640MB ram drive that up 10,000+ files could be written out of a full drive.  If instead you had 4MB Data-Tracks only 160 files would need to be created.
+
+  For version 0.50 the present default size of the drive is 1TBytes, and the Data-Track size is 16MBytes.
+
+  For versions 0.50 and up the size of a Data-Track (sector_size*sectors_per_track) should be atleast 256K_Bytes or greater to prevent the creation of a large number of small files by the VM system since it is no longer limited by the memory of your computer.  At the same time it would be best to keep the size of a Data-Track to 16MBytes or less to cut the latency of cache misses.  These versions also includes the ability to spread storage of Data-Tracks across multiple drives.
+
+Compiling and installing the driver:
+        Open a terminal and move your working directory to the folder containing the code you wish to compile and install, then compile the code by just typing 'make' in the terminal.  The new version will be inside the new 'obj' folder created.
+
+
+Credits for the strong shoulders I stand on:
+        Original BeOS RAMDRIVE driver code was the work of Dmitriy Budko.
+        Updates for BeOS 4.5 was the work of Mr. <petersens@jps.net>
+        Programming hints from my friend Larry Baydak.
+        Bitmap icon came from the Mr. <petersens@jps.net>'s work.
+        Help getting the driver working with BeOS 5.0+ and debugging methods from Carlos Hasan.
+        Help in getting over my blind spot in porting to Haiku-OS from both Axel Dorfleir and Ingo Weinhold.
+        Further additional programming help came from MMU_MAN, his help when developing my BEOS sound drivers gave me programming methods that are presently included in these drivers.
+        The vector icon came from Michael Vinicius De Oliveira's 3D Eyes Haiku Icons collection.
